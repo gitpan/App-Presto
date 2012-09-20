@@ -17,7 +17,7 @@ presto - Command-line interface for RESTful web services
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
 =head1 SYNOPSIS
 
@@ -125,10 +125,32 @@ behavior of presto.  These configuration options are persisted in a
 config file specific to the endpoint provided at the command-line and
 will be reloaded the next time you invoke presto with the same endpoint.
 
+Current valid config keys are:
+
+=over 4
+
+=item * verbose
+
+Boolean, when enabled, dumps request/response to STDOUT (defaults to "0")
+
+=item * deserialize_response 
+
+Boolean, when enabled response body is parsed based on the C<Content-Type>
+header (defaults to "1")
+
+=item * pretty_printer
+
+Must be one of the supported modules (i.e. Data::Dumper or JSON).
+Use tab completion to see currently supported values (defaults to "JSON").
+
+=item * binmode
+
+Used to set encoding of STDIN and STDOUT handles (defaults to "utf8")
+
+=back
+
 B<TODO:> provide a means for aliasing endpoints so that configuration
 is shared across multiple endpoints.
-
-B<TODO:> Document valid config options.
 
 =head2 History and Scripting
 
@@ -197,6 +219,25 @@ If you need to include that in subsequent request, you can use the "stash" featu
 Those variable substitutions can be used anywhere in a command.  C<HEADER>
 and C<BODY> always refer to the most recent request while the C<STASH>
 is a persisted for the life of the process.
+
+One useful feature for scripting is to prompt for user input.  You can do
+this by using the C<PROMPT> pseudo-variable.  The first set of brackets
+specify the prompt value.  The second (optional) set of brackets specify
+the initial value.  An example:
+
+	# collect the username/password from the user
+	http://my-server.com> stash username $(PROMPT[username:])
+	http://my-server.com> stash password $(PROMPT[password:])
+
+	# use the stashed values
+	http://my-server.com> authorization $(STASH[username]) $(STASH[password])
+	http://my-server.com> GET /$(STASH[username])/profile
+
+	# or use a value that was prompted for directly (without stashing it)
+	http://my-server.com> GET /products 'created_on=$(PROMPT[Created on (YYYY-MM-DD):])'
+
+	# you can also specify initial values
+	http://my-server.com> GET /products 'status=$(PROMPT[Product status:][active])'
 
 B<TODO:> Allow data structure references (from C<STASH> or even C<BODY>)
 to be passed to a POST or PUT command which is then serialized based

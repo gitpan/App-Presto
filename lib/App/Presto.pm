@@ -3,7 +3,7 @@ BEGIN {
   $App::Presto::AUTHORITY = 'cpan:BPHILLIPS';
 }
 {
-  $App::Presto::VERSION = '0.002';
+  $App::Presto::VERSION = '0.003';
 }
 
 # ABSTRACT: provides CLI for performing REST operations
@@ -45,7 +45,7 @@ has term => (
 sub _build_term {
 	my $self = shift;
 		my $help_categories = $self->command_factory->help_categories;
-    return App::Presto::ShellUI->new(
+    my $term = App::Presto::ShellUI->new(
         commands => {
             "help" => {
                 exclude_from_completion => 1,
@@ -82,6 +82,8 @@ sub _build_term {
         prompt       => sprintf( '%s> ', $self->endpoint ),
         history_file => $self->config->file('history'),
     );
+		$term->ornaments('md,me,,');
+		return $term;
 }
 
 has command_factory => (
@@ -98,12 +100,20 @@ sub run {
 	my $class = shift;
 	my $self = $class->instance;
 	my @args  = shift;
+	my $config;
 	if(my $endpoint = shift(@args)){
-		$self->config( App::Presto::Config->new( endpoint => $endpoint ) );
+		$self->config( $config = App::Presto::Config->new( endpoint => $endpoint ) );
 	} else {
 		die "Base endpoint (i.e. http://some-host.com) must be specified as command-line argument\n";
 	}
+
+	$config->init_defaults;
+
 	$self->command_factory->install_commands($self);
+
+	my $binmode = $config->get('binmode');
+	binmode(STDOUT,":encoding($binmode)");
+	binmode(STDIN,":encoding($binmode)");
 
 	my $term = $self->term;
 	return $term->run;
@@ -121,7 +131,7 @@ App::Presto - provides CLI for performing REST operations
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
 =head1 DESCRIPTION
 

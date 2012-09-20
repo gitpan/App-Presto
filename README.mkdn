@@ -4,7 +4,7 @@ presto - Command-line interface for RESTful web services
 
 # VERSION
 
-version 0.002
+version 0.003
 
 # SYNOPSIS
 
@@ -112,10 +112,28 @@ behavior of presto.  These configuration options are persisted in a
 config file specific to the endpoint provided at the command-line and
 will be reloaded the next time you invoke presto with the same endpoint.
 
+Current valid config keys are:
+
+- verbose
+
+Boolean, when enabled, dumps request/response to STDOUT (defaults to "0")
+
+- deserialize\_response 
+
+Boolean, when enabled response body is parsed based on the `Content-Type`
+header (defaults to "1")
+
+- pretty\_printer
+
+Must be one of the supported modules (i.e. Data::Dumper or JSON).
+Use tab completion to see currently supported values (defaults to "JSON").
+
+- binmode
+
+Used to set encoding of STDIN and STDOUT handles (defaults to "utf8")
+
 __TODO:__ provide a means for aliasing endpoints so that configuration
 is shared across multiple endpoints.
-
-__TODO:__ Document valid config options.
 
 ## History and Scripting
 
@@ -184,6 +202,25 @@ If you need to include that in subsequent request, you can use the "stash" featu
 Those variable substitutions can be used anywhere in a command.  `HEADER`
 and `BODY` always refer to the most recent request while the `STASH`
 is a persisted for the life of the process.
+
+One useful feature for scripting is to prompt for user input.  You can do
+this by using the `PROMPT` pseudo-variable.  The first set of brackets
+specify the prompt value.  The second (optional) set of brackets specify
+the initial value.  An example:
+
+	# collect the username/password from the user
+	http://my-server.com> stash username $(PROMPT[username:])
+	http://my-server.com> stash password $(PROMPT[password:])
+
+	# use the stashed values
+	http://my-server.com> authorization $(STASH[username]) $(STASH[password])
+	http://my-server.com> GET /$(STASH[username])/profile
+
+	# or use a value that was prompted for directly (without stashing it)
+	http://my-server.com> GET /products 'created_on=$(PROMPT[Created on (YYYY-MM-DD):])'
+
+	# you can also specify initial values
+	http://my-server.com> GET /products 'status=$(PROMPT[Product status:][active])'
 
 __TODO:__ Allow data structure references (from `STASH` or even `BODY`)
 to be passed to a POST or PUT command which is then serialized based

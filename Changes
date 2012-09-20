@@ -1,0 +1,17 @@
+Changes file for App-Presto
+
+0.003     2012-09-20 16:26:47 America/Chicago
+
+	- better tab completion options for various commands
+	- warn on missing content-type header for request
+	- stricter config handling (only certain keys are allowed)
+	- added support for $(PROMPT[hullo?]) expansion
+  - added Changes file
+
+0.002 Tue Sep 18 08:12:48 CDT 2012
+
+  - added required version for File::Path
+
+0.001  Fri Sep 07 2012
+
+  - the first release

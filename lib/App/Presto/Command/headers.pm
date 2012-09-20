@@ -3,7 +3,7 @@ BEGIN {
   $App::Presto::Command::headers::AUTHORITY = 'cpan:BPHILLIPS';
 }
 {
-  $App::Presto::Command::headers::VERSION = '0.002';
+  $App::Presto::Command::headers::VERSION = '0.003';
 }
 
 # ABSTRACT: HTTP header-related commands
@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use Moo;
 use MIME::Base64;
-with 'App::Presto::InstallableCommand','App::Presto::CommandHasHelp';
+with 'App::Presto::InstallableCommand','App::Presto::CommandHasHelp', 'App::Presto::WithPrettyPrinter';
 
 sub install {
     my $self = shift;
@@ -21,24 +21,29 @@ sub install {
     $self->term->add_commands(
         {
             authorization => {
-                minargs => 2,
+                minargs => 0,
                 maxargs => 2,
-                desc => 'Set basic auth username/password',
+                desc => 'GET/Set basic auth username/password',
                 args => [sub { '[username]' },sub { '[password]' } ],
                 proc    => sub {
                     my ( $username, $password ) = @_;
-                    $client->set_header(
-                        Authorization => sprintf( 'Basic %s',
-                            MIME::Base64::encode( "$username:$password", '' ) )
-                    );
+                    if($username){
+                        $client->set_header(
+                            Authorization => sprintf( 'Basic %s',
+                                MIME::Base64::encode( "$username:$password", '' ) )
+                        );
+                    } elsif( my $auth = $client->get_header('Authorization') ){
+                        $auth =~ s/Basic //;
+                        my ($u,$p) = split(/:/, MIME::Base64::decode( $auth ), 2 );
+                        print "Username: $u\nPassword: $p\n";
+                    }
                 },
             },
             type => {
                 minargs => 1,
                 desc => 'Set content-type header',
-                proc    => sub {
-                    $client->set_header( 'Content-Type', shift );
-                },
+                args => sub { ['application/json','application/x-www-form-urlencoded'] },
+                proc    => sub { $client->set_header( 'Content-Type', shift ) },
             },
             headers => {
                 maxargs => 0,
@@ -51,23 +56,16 @@ sub install {
                     my @args   = @_;
                     if ( !$header ) {    # print all
                         my %headers = $client->all_headers;
-                        print "Headers:\n";
-                        foreach my $h ( keys %headers ) {
-                            printf " - %s: %s\n", $h, $headers{$h};
-                        }
-                    }
-                    elsif ( $header eq '-clear' ) {
+                        print $self->pretty_print( \%headers );
+                    } elsif ( $header eq '-clear' ) {
                         $client->clear_headers;
-                    }
-                    elsif (@args) {      # set
-                        $header =~ s/:$//
-                          ; # to allow pasting of an actual HTTP header from the dump
+                    } elsif (@args) {      # set
+                        $header =~ s/:$//; # to allow pasting of an actual HTTP header from the dump
                         my $value = join ' ', @args;
                         $client->set_header( $header, $value );
                     }
                     else {    # get
-                        printf( "Header: %s: %s\n",
-                            $header, $client->get_header($header) );
+                        print $self->pretty_print( { $header => $client->get_header($header) });
                     }
                 },
             },
@@ -93,7 +91,7 @@ App::Presto::Command::headers - HTTP header-related commands
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
 =head1 AUTHOR
 
