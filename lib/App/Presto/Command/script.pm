@@ -3,7 +3,7 @@ BEGIN {
   $App::Presto::Command::script::AUTHORITY = 'cpan:BPHILLIPS';
 }
 {
-  $App::Presto::Command::script::VERSION = '0.004';
+  $App::Presto::Command::script::VERSION = '0.005';
 }
 
 # ABSTRACT: REST script-related commands
@@ -18,7 +18,7 @@ sub _build_scripts {
     my $self = shift;
     my $dir = $self->scripts_dir;
     opendir(my $dh, $dir) or die sprintf("unable to open directory %s: %s", $dir, $!);
-    my @files = grep { -f "$dir/$_" } readdir($dh);
+    my @files = grep { -f "$dir/$_" } grep { !/^\./ } readdir($dh);
     closedir($dh);
     return \@files;
 }
@@ -60,6 +60,11 @@ sub install {
                     return [grep { $cmpl->{str} eq '' || index($_, $cmpl->{str}) == 0 } @{ $self->scripts }];
                 },
                 proc    => sub { $self->_source(@_) },
+            },
+            scripts => {
+                desc => 'List all script files available for sourcing',
+                maxargs => 0,
+                proc => sub { print " - $_\n" for @{ $self->scripts }; },
             },
         }
     );
@@ -115,19 +120,19 @@ sub _source {
     my $interactive = shift;
 
     if(grep { $script eq $_ } @STACK){
-        print " *** script $script already being run, will not run again\n";
+        warn " *** script $script already being run, will not run again\n";
         return;
     }
 
     my @commands = $self->_script_commands($script);
     if(!@commands){
-        print " *** script $script not found or empty\n";
+        warn " *** script $script not found or empty\n";
         return;
     }
 
     push @STACK, $script;
     foreach my $l(@commands){
-        print "$l\n";
+        print "$l\n" unless $l =~ s/^@// && !$interactive;
         if($interactive){
             my $response = $self->term->readline("Execute? (Y/n/a) ");
             if($response && $response =~ m/^n/){
@@ -175,7 +180,7 @@ App::Presto::Command::script - REST script-related commands
 
 =head1 VERSION
 
-version 0.004
+version 0.005
 
 =head1 AUTHOR
 

@@ -3,7 +3,7 @@ BEGIN {
   $App::Presto::AUTHORITY = 'cpan:BPHILLIPS';
 }
 {
-  $App::Presto::VERSION = '0.004';
+  $App::Presto::VERSION = '0.005';
 }
 
 # ABSTRACT: provides CLI for performing REST operations
@@ -131,19 +131,15 @@ App::Presto - provides CLI for performing REST operations
 
 =head1 VERSION
 
-version 0.004
+version 0.005
+
+=head1 SYNOPSIS
+
+All user-facing documentation can be found in L<presto>.
 
 =head1 DESCRIPTION
 
 A L<Term::ShellUI>-based CLI for REST web applications.
-
-=head1 SEE ALSO
-
-=over 4
-
-=item * L<presto>
-
-=back
 
 =head1 AUTHOR
 

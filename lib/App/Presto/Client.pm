@@ -3,7 +3,7 @@ BEGIN {
   $App::Presto::Client::AUTHORITY = 'cpan:BPHILLIPS';
 }
 {
-  $App::Presto::Client::VERSION = '0.004';
+  $App::Presto::Client::VERSION = '0.005';
 }
 
 # ABSTRACT: The REST client
@@ -130,7 +130,6 @@ sub response_data {
 				return $h->deserialize( $response->content );
 			}
 		}
-		warn "no available deserializer found for content type: $content_type";
 	}
 	return $response->decoded_content;
 }
@@ -146,7 +145,7 @@ App::Presto::Client - The REST client
 
 =head1 VERSION
 
-version 0.004
+version 0.005
 
 =head1 AUTHOR
 
