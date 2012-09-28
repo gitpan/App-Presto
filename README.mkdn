@@ -4,7 +4,7 @@ presto - Command-line interface for RESTful web services
 
 # VERSION
 
-version 0.005
+version 0.006
 
 # SYNOPSIS
 
@@ -82,6 +82,12 @@ You can also specify additional headers you would like included in the request:
 
 	# view specific header
 	http://my-server.com> header Authorization
+
+	# clear all headers
+	http://my-server.com> headers --clear
+
+	# unset specific header
+	http://my-server.com> header --unset Authorization
 
 If you are creating form URL-encoded data, a shortcut has been made to avoid having
 to manually URL-encode everything manually:
